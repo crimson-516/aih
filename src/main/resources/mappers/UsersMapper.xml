@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.aihelper.ai.mappers.UsersMapper">
+    <!-- 实体映射 -->
+    <resultMap id="base_result_map" type="com.example.aihelper.ai.entity.po.Users">
+        <result column="id" property="id"/>
+        <result column="user_name" property="userName"/>
+        <result column="pass_word" property="passWord"/>
+    </resultMap>
+    <!-- 通用查询列 -->
+    <sql id="base_column_list">
+        id, user_name, pass_word
+    </sql>
+
+    <!-- 基础条件 -->
+    <sql id="base_condition_filed">
+        <if test="query.id != null">
+            and id = #{query.id}
+        </if>
+        <if test="query.userName != null and query.userName!=''">
+            and user_name = #{query.userName}
+        </if>
+        <if test="query.passWord != null and query.passWord!=''">
+            and pass_word = #{query.passWord}
+        </if>
+    </sql>
+    <sql id="query_condition">
+        <where>
+            <include refid="base_condition_filed"/>
+            <if test="query.userNameFuzzy!= null  and query.userNameFuzzy!=''">
+                and user_name like concat('%', #{query.userNameFuzzy}, '%')
+            </if>
+        </where>
+    </sql>
+    <!--baseMapper-->
+    <select id="selectList" resultMap="base_result_map">
+        SELECT <include refid="base_column_list"/>
+        FROM users
+        <include refid="query_condition"/>
+    </select>
+    <select id="selectCount" resultType="integer">
+        SELECT COUNT(1) FROM users
+        <include refid="query_condition"/>
+    </select>
+    <insert id="insert">
+        INSERT INTO users
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.id != null">id,</if>
+            <if test="bean.userName != null"> user_name, </if>
+            <if test="bean.passWord != null"> pass_word, </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.id != null">#{bean.id},</if>
+            <if test="bean.userName!=null"> #{bean.userName}, </if>
+            <if test="bean.passWord!=null"> #{bean.passWord}, </if>
+        </trim>
+    </insert>
+    <insert id="insertOrUpdate">
+        INSERT INTO users
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.id != null">id,</if>
+            <if test="bean.userName != null"> user_name, </if>
+            <if test="bean.passWord != null"> pass_word, </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.id != null">#{bean.id},</if>
+            <if test="bean.userName!=null"> #{bean.userName}, </if>
+            <if test="bean.passWord!=null"> #{bean.passWord}, </if>
+        </trim>
+        on DUPLICATE key update
+        <trim suffixOverrides=",">
+            <if test="bean.userName!=null"> user_name = VALUES(user_name), </if>
+            <if test="bean.passWord!=null"> pass_word = VALUES(pass_word), </if>
+        </trim>
+    </insert>
+
+    <!-- 批量插入 -->
+    <insert id="insertBatch">
+        INSERT INTO users(id, user_name, pass_word)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.userName}, #{item.passWord})
+        </foreach>
+    </insert>
+
+    <!-- 批量插入或更新 -->
+    <insert id="insertOrUpdateBatch">
+        INSERT INTO users(id, user_name, pass_word)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.userName}, #{item.passWord})
+        </foreach>
+        on DUPLICATE key update
+        user_name = VALUES(user_name),
+        pass_word = VALUES(pass_word)
+    </insert>
+
+    <!-- 根据条件更新 -->
+    <update id="updateByParam">
+        UPDATE users
+        <set>
+            <if test="bean.userName != null"> user_name = #{bean.userName}, </if>
+            <if test="bean.passWord != null"> pass_word = #{bean.passWord}, </if>
+        </set>
+        <include refid="query_condition"/>
+    </update>
+
+    <!-- 根据条件删除 -->
+    <delete id="deleteByParam">
+        delete from users
+        <include refid="query_condition"/>
+    </delete>
+
+    <!--==================== 自己写的方法 ==========================-->
+
+    <!-- 登录 -->
+    <select id="login" resultMap="base_result_map">
+        SELECT <include refid="base_column_list"/>
+        FROM users
+        <include refid="query_condition"/>
+    </select>
+
+    <!-- 根据用户名查询 -->
+    <select id="selectByName" resultMap="base_result_map">
+        SELECT <include refid="base_column_list"/>
+        FROM users
+        WHERE user_name = #{userName}
+    </select>
+</mapper>

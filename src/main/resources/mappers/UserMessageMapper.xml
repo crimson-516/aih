@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.aihelper.ai.mappers.UserMessageMapper">
+    <!-- 实体映射 -->
+    <resultMap id="base_result_map" type="com.example.aihelper.ai.entity.po.UserMessage">
+        <result column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="conversation_id" property="conversationId"/>
+        <result column="message_type" property="messageType"/>
+        <result column="content" property="content"/>
+        <result column="is_ai" property="isAi"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <!-- 通用查询列 -->
+    <sql id="base_column_list">
+        id,user_id,conversation_id,message_type,content,is_ai,create_time
+    </sql>
+
+    <!-- 基础条件 -->
+    <sql id="base_condition_filed">
+        <if test="query.id != null">
+            and id = #{query.id}
+        </if>
+        <if test="query.userId != null and query.userId!=''">
+            and user_id = #{query.userId}
+        </if>
+        <if test="query.conversationId != null and query.conversationId!=''">
+            and conversation_id = #{query.conversationId}
+        </if>
+        <if test="query.messageType != null and query.messageType!=''">
+            and message_type = #{query.messageType}
+        </if>
+        <if test="query.content != null and query.content!=''">
+            and content = #{query.content}
+        </if>
+        <if test="query.isAi != null">
+            and is_ai = #{query.isAi}
+        </if>
+        <if test="query.createTime != null">
+            and create_time = #{query.createTime}
+        </if>
+    </sql>
+
+    <sql id="query_condition">
+        <where>
+            <include refid="base_condition_filed"/>
+            <if test="query.contentFuzzy!= null and query.contentFuzzy!=''">
+                and content like concat('%', #{query.contentFuzzy}, '%')
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectList" resultMap="base_result_map">
+        SELECT <include refid="base_column_list"/>
+        FROM user_message
+        <include refid="query_condition"/>
+    </select>
+
+    <select id="selectCount" resultType="integer">
+        SELECT COUNT(1) FROM user_message
+        <include refid="query_condition"/>
+    </select>
+
+    <insert id="insert">
+        INSERT INTO user_message
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.id != null">id,</if>
+            <if test="bean.userId != null">user_id,</if>
+            <if test="bean.conversationId != null">conversation_id,</if>
+            <if test="bean.messageType != null">message_type,</if>
+            <if test="bean.content != null">content,</if>
+            <if test="bean.isAi != null">is_ai,</if>
+            <if test="bean.createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.id != null">#{bean.id},</if>
+            <if test="bean.userId != null">#{bean.userId},</if>
+            <if test="bean.conversationId != null">#{bean.conversationId},</if>
+            <if test="bean.messageType != null">#{bean.messageType},</if>
+            <if test="bean.content != null">#{bean.content},</if>
+            <if test="bean.isAi != null">#{bean.isAi},</if>
+            <if test="bean.createTime != null">#{bean.createTime},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertOrUpdate">
+        INSERT INTO user_message
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.id != null">id,</if>
+            <if test="bean.userId != null">user_id,</if>
+            <if test="bean.conversationId != null">conversation_id,</if>
+            <if test="bean.messageType != null">message_type,</if>
+            <if test="bean.content != null">content,</if>
+            <if test="bean.isAi != null">is_ai,</if>
+            <if test="bean.createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.id != null">#{bean.id},</if>
+            <if test="bean.userId != null">#{bean.userId},</if>
+            <if test="bean.conversationId != null">#{bean.conversationId},</if>
+            <if test="bean.messageType != null">#{bean.messageType},</if>
+            <if test="bean.content != null">#{bean.content},</if>
+            <if test="bean.isAi != null">#{bean.isAi},</if>
+            <if test="bean.createTime != null">#{bean.createTime},</if>
+        </trim>
+        on DUPLICATE key update
+        <trim suffixOverrides=",">
+            <if test="bean.userId != null">user_id = VALUES(user_id),</if>
+            <if test="bean.conversationId != null">conversation_id = VALUES(conversation_id),</if>
+            <if test="bean.messageType != null">message_type = VALUES(message_type),</if>
+            <if test="bean.content != null">content = VALUES(content),</if>
+            <if test="bean.isAi != null">is_ai = VALUES(is_ai),</if>
+            <if test="bean.createTime != null">create_time = VALUES(create_time),</if>
+        </trim>
+    </insert>
+
+    <insert id="insertBatch">
+        INSERT INTO user_message(id, user_id,conversation_id, message_type, content, is_ai, create_time)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.userId},#{item.conversationId}, #{item.messageType}, #{item.content}, #{item.isAi}, #{item.createTime})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch">
+        INSERT INTO user_message(id, user_id, conversation_id, message_type, content, is_ai, create_time)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.userId}, #{item.conversationId}, #{item.messageType}, #{item.content}, #{item.isAi}, #{item.createTime})
+        </foreach>
+        on DUPLICATE key update
+        user_id = VALUES(user_id),
+        conversation_id = VALUES(conversation_id),
+        message_type = VALUES(message_type),
+        content = VALUES(content),
+        is_ai = VALUES(is_ai),
+        create_time = VALUES(create_time)
+    </insert>
+
+    <update id="updateByParam">
+        UPDATE user_message
+        <set>
+            <if test="bean.id != null">id = #{bean.id},</if>
+            <if test="bean.userId != null">user_id = #{bean.userId},</if>
+            <if test="bean.conversationId != null">conversation_id = #{bean.conversationId},</if>
+            <if test="bean.messageType != null">message_type = #{bean.messageType},</if>
+            <if test="bean.content != null">content = #{bean.content},</if>
+            <if test="bean.isAi != null">is_ai = #{bean.isAi},</if>
+            <if test="bean.createTime != null">create_time = #{bean.createTime},</if>
+        </set>
+        <include refid="query_condition"/>
+    </update>
+
+    <delete id="deleteByParam">
+        delete from user_message
+        <include refid="query_condition"/>
+    </delete>
+
+    <!--==================== 自己写的方法 ==========================-->
+    <select id="getMessagesByConversationId" resultMap="base_result_map">
+        SELECT <include refid="base_column_list"/>
+        FROM user_message
+        WHERE conversation_id = #{conversationId}
+        ORDER BY create_time ASC
+    </select>
+    <delete id="deleteByConversationId">
+        DELETE FROM user_message
+        WHERE user_id = #{userId}
+        AND conversation_id = #{conversationId}
+    </delete>
+</mapper>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.aihelper.ai.mappers.ConversationMapper">
+
+    <!-- 实体映射 -->
+    <resultMap id="base_result_map" type="com.example.aihelper.ai.entity.po.Conversation">
+        <result column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="title" property="title"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <!-- 通用查询列 -->
+    <sql id="base_column_list">
+        id, user_id, title, create_time
+    </sql>
+
+    <!-- 条件拼接 -->
+    <sql id="base_condition_filed">
+        <if test="query.id != null">
+            and id = #{query.id}
+        </if>
+        <if test="query.userId != null">
+            and user_id = #{query.userId}
+        </if>
+        <if test="query.title != null and query.title != ''">
+            and title like concat('%', #{query.title}, '%')
+        </if>
+        <if test="query.createTime != null">
+            and create_time = #{query.createTime}
+        </if>
+    </sql>
+
+    <sql id="query_condition">
+        <where>
+            <include refid="base_condition_filed"/>
+        </where>
+    </sql>
+
+    <!-- 查询列表 -->
+    <select id="selectList" resultMap="base_result_map">
+        SELECT <include refid="base_column_list"/>
+        FROM conversation
+        <include refid="query_condition"/>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 统计数量 -->
+    <select id="selectCount" resultType="integer">
+        SELECT COUNT(1) FROM conversation
+        <include refid="query_condition"/>
+    </select>
+
+    <!-- 插入 -->
+    <insert id="insert">
+        INSERT INTO conversation
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.id != null">id,</if>
+            <if test="bean.userId != null">user_id,</if>
+            <if test="bean.title != null">title,</if>
+            <if test="bean.createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.id != null">#{bean.id},</if>
+            <if test="bean.userId != null">#{bean.userId},</if>
+            <if test="bean.title != null">#{bean.title},</if>
+            <if test="bean.createTime != null">#{bean.createTime},</if>
+        </trim>
+    </insert>
+
+    <!-- 插入或更新 -->
+    <insert id="insertOrUpdate">
+        INSERT INTO conversation
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.id != null">id,</if>
+            <if test="bean.userId != null">user_id,</if>
+            <if test="bean.title != null">title,</if>
+            <if test="bean.createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.id != null">#{bean.id},</if>
+            <if test="bean.userId != null">#{bean.userId},</if>
+            <if test="bean.title != null">#{bean.title},</if>
+            <if test="bean.createTime != null">#{bean.createTime},</if>
+        </trim>
+        on DUPLICATE KEY UPDATE
+        <trim suffixOverrides=",">
+            <if test="bean.userId != null">user_id = VALUES(user_id),</if>
+            <if test="bean.title != null">title = VALUES(title),</if>
+            <if test="bean.createTime != null">create_time = VALUES(create_time),</if>
+        </trim>
+    </insert>
+
+    <!-- 条件更新 -->
+    <update id="updateByParam">
+        UPDATE conversation
+        <set>
+            <if test="bean.id != null">id = #{bean.id},</if>
+            <if test="bean.userId != null">user_id = #{bean.userId},</if>
+            <if test="bean.title != null">title = #{bean.title},</if>
+            <if test="bean.createTime != null">create_time = #{bean.createTime},</if>
+        </set>
+        <include refid="query_condition"/>
+    </update>
+
+    <!-- 条件删除 -->
+    <delete id="deleteByParam">
+        delete from conversation
+        <include refid="query_condition"/>
+    </delete>
+    <!--==================== 自己写的方法 ==========================-->
+    <delete id="deleteConversation">
+        DELETE FROM conversation
+        WHERE user_id = #{userId}
+        AND id = #{conversationId}
+    </delete>
+</mapper>
